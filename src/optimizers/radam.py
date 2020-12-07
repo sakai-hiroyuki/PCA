@@ -1,8 +1,5 @@
 import autograd.numpy as np
 
-from autograd import grad
-from tqdm import tqdm
-
 from optimizers import Optimizer
 from manifolds import Stiefel
 
@@ -15,43 +12,26 @@ class RAdam(Optimizer):
         self.beta2 = beta2
         self.amsgrad = amsgrad
     
-    def optimize(self, loss, data, components, n_iter: int=20000, x0: np.ndarray=None):
-        N = data.shape[0]
-        n = data.shape[1]
-        M = Stiefel(components, n)
-        if x0 is None:
-            xk = np.linalg.qr(np.random.randn(n, components))[0]
+    def update(self, M, xk, g, k):
+        if not hasattr(self, 'params'):
+            self.params = {}
+            self.params['m'] = np.zeros_like(xk)
+            self.params['tau'] = np.zeros_like(xk)
+            self.params['v'] = 0.
+            self.params['vhat'] = 0.
+
+        self.params['m'] = self.beta1 * self.params['tau'] + (1 - self.beta1) * g
+        if not self.amsgrad:
+            self.params['mhat'] = self.params['m'] / (1 - self.beta1 ** (k + 1))
         else:
-            xk = x0.copy()
-
-        m = np.zeros_like(xk)
-        tau = np.zeros_like(xk)
-        v = 0.
-        vhat = 0.
-        for k in tqdm(range(n_iter)):
-            index = np.random.randint(0, N)
-            z = data[index]
+            self.params['mhat'] = self.params['m']
+        self.params['v'] = self.beta2 * self.params['v'] + (1 - self.beta2) * np.trace(np.dot(g.T, g))
+        if not self.amsgrad:
+            self.params['vhat'] = self.params['v'] / (1 - self.beta2 ** (k + 1))
+        else:
+            self.params['vhat'] = max(self.params['vhat'], self.params['v'])
         
-            def loss_i(x):
-                return - np.dot(np.dot(z, x), np.dot(x.T, z))
-            g = M.projection(xk, grad(loss_i)(xk))
-            
-            m = self.beta1 * tau + (1 - self.beta1) * g
-            if not self.amsgrad:
-                mhat = m / (1 - self.beta1 ** (k + 1))
-            else:
-                mhat = m
-            v = self.beta2 * v + (1 - self.beta2) * np.trace(np.dot(g.T, g))
-            if not self.amsgrad:
-                vhat = v / (1 - self.beta2 ** (k + 1))
-            else:
-                vhat = max(vhat, v)
-            
-            xk = M.retraction(xk, -self.lr * mhat / (np.sqrt(vhat) + 1e-8))
-            tau = M.projection(xk, m)
-            
-            if k % 100 == 0:
-                l = loss(xk)
-                self.logging(l)
-
-        self.xk = xk
+        xk = M.retraction(xk, -self.lr * self.params['mhat'] / (np.sqrt(self.params['vhat']) + 1e-8))
+        self.params['tau'] = M.projection(xk, self.params['m'])
+        
+        return xk
