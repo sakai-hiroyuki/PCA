@@ -30,7 +30,9 @@ if __name__ == "__main__":
     data = datasets[dataset]()
     N, n = data.shape[0], data.shape[1]
 
-    if not os.path.exists(f'data/{dataset}/C.npy'):
+    if not os.path.isdir(f'data/{dataset}'):
+        os.makedirs(f'data/{dataset}')
+    if not os.path.isfile(f'data/{dataset}/C.npy'):
         create_covariance_matrix(data, f'data/{dataset}')
     C = np.load(f'data/{dataset}/C.npy')
 
