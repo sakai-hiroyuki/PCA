@@ -22,12 +22,12 @@ class RAdam(Optimizer):
 
         self.params['m'] = self.beta1 * self.params['tau'] + (1 - self.beta1) * g
         if not self.amsgrad:
-            self.params['mhat'] = self.params['m'] / (1 - self.beta1 ** (k + 1))
+            self.params['mhat'] = self.params['m'] / (1 - self.beta1 ** k)
         else:
             self.params['mhat'] = self.params['m']
         self.params['v'] = self.beta2 * self.params['v'] + (1 - self.beta2) * np.trace(np.dot(g.T, g))
         if not self.amsgrad:
-            self.params['vhat'] = self.params['v'] / (1 - self.beta2 ** (k + 1))
+            self.params['vhat'] = self.params['v'] / (1 - self.beta2 ** k)
         else:
             self.params['vhat'] = max(self.params['vhat'], self.params['v'])
         

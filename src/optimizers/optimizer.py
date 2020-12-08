@@ -20,8 +20,9 @@ class Optimizer(object, metaclass=ABCMeta):
             xk = np.linalg.qr(np.random.randn(n, r))[0]
         else:
             xk = x0.copy()
-
-        for k in tqdm(range(n_iter)):
+        
+        self.logging(loss(xk))
+        for k in tqdm(range(1, n_iter + 1)):
             index = np.random.randint(0, N)
             z = data[index]
         

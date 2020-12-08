@@ -5,7 +5,7 @@ import pandas as pd
 from argparse import ArgumentParser
 
 from manifolds import Stiefel
-from optimizers import RSGD, RAdam
+from optimizers import RSGD, RAdam, RAdaGrad
 from load import get_mnist, get_digits
 from utils import get_min, create_covariance_matrix, save
 from plot import plot
@@ -18,12 +18,14 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('--dataset', type=str, default='MNIST')
     parser.add_argument('--components', type=int, default=10)
-    parser.add_argument('--n_iter', type=int, default=10000)
+    parser.add_argument('--n_iter', type=int, default=100000)
+    parser.add_argument('--lr', type=float, default=5e-3)
 
     args = parser.parse_args()
     dataset = args.dataset
     components = args.components
     n_iter = args.n_iter
+    lr = args.lr
 
     data = datasets[dataset]()
     N, n = data.shape[0], data.shape[1]
@@ -38,9 +40,10 @@ if __name__ == "__main__":
     _min = get_min(loss, C, components)
     
     optimizer_dict = {
-        'SD1': RSGD(lr=5e-3),
-        'AD1': RAdam(lr=5e-3),
-        'AM1': RAdam(lr=5e-3, amsgrad=True)
+        'SD1': RSGD(lr=lr),
+        'AG1': RAdaGrad(lr=lr),
+        'AD1': RAdam(lr=lr),
+        'AM1': RAdam(lr=lr, amsgrad=True)
     }
 
     x0 = np.linalg.qr(np.random.randn(n, components))[0]

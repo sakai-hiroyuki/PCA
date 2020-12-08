@@ -19,6 +19,11 @@ def plot(dataset, optimizers, _min: float):
 
         plt.plot(x, y, label=name)
     
+    xticks, _ = plt.xticks()
+    xleft, xright = plt.xlim()
+    plt.xticks(xticks, [f'{int(x)}' for x in 100 * xticks])
+    plt.xlim(xleft, xright)
+    
     plt.legend()
     plt.yscale('log')
     plt.xlabel('Number of iterations')
