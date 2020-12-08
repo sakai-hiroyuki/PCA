@@ -4,10 +4,10 @@ from matplotlib import pyplot as plt
 from argparse import ArgumentParser
 
 from load import get_mnist, get_digits
-from utils import get_min, create_covariance_matrix
+from utils import load_covariance_matrix, create_loss
 
 
-optimizers = ['SD1', 'AG1', 'AD1', 'AM1', 'AB1']
+optimizers = ['SD1', 'AG1', 'AD1', 'AM1', 'ADB1', 'AMB1']
 datasets = {'MNIST': get_mnist, 'digits': get_digits}
 
 
@@ -43,11 +43,7 @@ if __name__ == "__main__":
     data = datasets[dataset]()
     N = data.shape[0]
 
-    C = np.load(f'data/{dataset}/C.npy')
-
-    def loss(x):
-        return (-np.trace(np.dot(x.T, np.dot(C, x))) + np.trace(C)) / N
-
-    _min = get_min(loss, C, components)
+    C = load_covariance_matrix(data, dataset)
+    _, _min = create_loss(C, components, N)
 
     plot(dataset, optimizers, _min)
