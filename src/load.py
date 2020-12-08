@@ -1,5 +1,5 @@
 from tensorflow.keras.datasets import mnist
-from sklearn.datasets import load_digits
+from sklearn.datasets import load_digits, load_iris
 
 
 def get_mnist():
@@ -16,5 +16,13 @@ def get_digits():
     
     data = data.astype('float32')
     data /= 16 * 10
+
+    return data
+
+def get_iris():
+    data, _ = load_iris(return_X_y=True)
+
+    data = data.astype('float32')
+    data /= 7.9 * 10
 
     return data

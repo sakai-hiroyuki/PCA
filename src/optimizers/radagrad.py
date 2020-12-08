@@ -5,17 +5,22 @@ from manifolds import Stiefel
 
 
 class RAdaGrad(Optimizer):
-    def __init__(self, lr: float=1e-3):
-        super().__init__()
+    def __init__(self, lr=1e-3, eps=1e-8) -> None:
+        if not 0. < lr:
+            raise ValueError(f'Invaild learning rate: {lr}')
+        if not 0.0 < eps:
+            raise ValueError(f'Invalid epsilon value: {eps}')
         self.lr = lr
+        self.eps = eps
+        super(RAdaGrad, self).__init__()
     
-    def update(self, M, xk, g, k):
-        if not hasattr(self, 'params'):
-            self.params = {}
-            self.params['v'] = 0.
+    def update(self, M, xk, g, k) -> np.ndarray:
+        if not hasattr(self, 'state'):
+            self.state = {}
+            self.state['v'] = 0.
 
-        self.params['v'] += np.trace(np.dot(g.T, g))
+        self.state['v'] += np.trace(np.dot(g.T, g))
         
-        xk = M.retraction(xk, -self.lr * g / (np.sqrt(self.params['v']) + 1e-8))
+        xk = M.retraction(xk, -self.lr * g / (np.sqrt(self.state['v']) + self.eps))
         
         return xk

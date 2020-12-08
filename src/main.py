@@ -5,13 +5,13 @@ import pandas as pd
 from argparse import ArgumentParser
 
 from manifolds import Stiefel
-from optimizers import RSGD, RAdam, RAdaGrad
-from load import get_mnist, get_digits
+from optimizers import RSGD, RAdam, RAdaGrad, RAdaBound
+from load import get_mnist, get_digits, get_iris
 from utils import get_min, create_covariance_matrix, save
 from plot import plot
 
 
-datasets = {'MNIST': get_mnist, 'digits': get_digits}
+datasets = {'MNIST': get_mnist, 'digits': get_digits, 'iris': get_iris}
 
 
 if __name__ == "__main__":
@@ -38,12 +38,14 @@ if __name__ == "__main__":
         return (-np.trace(np.dot(x.T, np.dot(C, x))) + np.trace(C)) / N
 
     _min = get_min(loss, C, components)
-    
+
     optimizer_dict = {
         'SD1': RSGD(lr=lr),
         'AG1': RAdaGrad(lr=lr),
         'AD1': RAdam(lr=lr),
-        'AM1': RAdam(lr=lr, amsgrad=True)
+        'AM1': RAdam(lr=lr, amsgrad=True),
+        'ADB1': RAdaBound(lr=lr),
+        'AMB1': RAdaBound(lr=lr, amsbound=True)
     }
 
     x0 = np.linalg.qr(np.random.randn(n, components))[0]

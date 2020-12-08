@@ -5,14 +5,15 @@ from manifolds import Stiefel
 
 
 class RSGD(Optimizer):
-    def __init__(self, lr: float=1e-3, beta: float=0.9):
-        super().__init__()
+    def __init__(self, lr=1e-3) -> None:
+        if not 0. < lr:
+            raise ValueError(f'Invaild learning rate: {lr}')
         self.lr = lr
-        self.beta = beta
+        super(RSGD, self).__init__()
     
-    def update(self, M, xk, g, k):
-        if not hasattr(self, 'params'):
-            self.params = {}
+    def update(self, M, xk, g, k) -> np.ndarray:
+        if not hasattr(self, 'state'):
+            self.state = {}
 
         xk = M.retraction(xk, -self.lr * g)
         return xk

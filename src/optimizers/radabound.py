@@ -4,8 +4,8 @@ from optimizers import Optimizer
 from manifolds import Stiefel
 
 
-class RAdam(Optimizer):
-    def __init__(self, lr=1e-3, betas=(0.9, 0.999), eps=1e-8, amsgrad: bool=False) -> None:
+class RAdaBound(Optimizer):
+    def __init__(self, lr=1e-3, betas=(0.9, 0.999), final_lr=0.1, eps=1e-8, amsbound=False) -> None:
         if not 0. < lr:
             raise ValueError(f'Invaild learning rate: {lr}')
         if not 0.0 < eps:
@@ -17,8 +17,9 @@ class RAdam(Optimizer):
         self.lr = lr
         self.betas = betas
         self.eps = eps
-        self.amsgrad = amsgrad
-        super(RAdam, self).__init__()
+        self.final_lr = final_lr
+        self.amsbound = amsbound
+        super(RAdaBound, self).__init__()
     
     def update(self, M, xk, g, k) -> np.ndarray:
         if not hasattr(self, 'state'):
@@ -29,17 +30,18 @@ class RAdam(Optimizer):
             self.state['vhat'] = 0.
 
         self.state['m'] = self.betas[0] * self.state['tau'] + (1 - self.betas[0]) * g
-        if self.amsgrad:
-            mhat = self.state['m']
-        else:
-            mhat = self.state['m'] / (1 - self.betas[0] ** k)
         self.state['v'] = self.betas[1] * self.state['v'] + (1 - self.betas[1]) * np.trace(np.dot(g.T, g))
-        if self.amsgrad:
+        if self.amsbound:
             self.state['vhat'] = max(self.state['vhat'], self.state['v'])
         else:
-            self.state['vhat'] = self.state['v'] / (1 - self.betas[1] ** k)
+            self.state['vhat'] = self.state['v']
+
+        lower = self.final_lr * (1 - 1 / ((1 - self.betas[1]) * k + 1))
+        upper = self.final_lr * (1 + 1 / ((1 - self.betas[1]) * k))
+
+        clipped = np.clip(self.lr / (np.sqrt(self.state['vhat']) + self.eps), lower, upper)
         
-        xk = M.retraction(xk, -self.lr * mhat / (np.sqrt(self.state['vhat']) + self.eps))
+        xk = M.retraction(xk, -clipped * self.state['m'])
         self.state['tau'] = M.projection(xk, self.state['m'])
         
         return xk

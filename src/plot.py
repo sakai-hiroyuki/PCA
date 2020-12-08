@@ -7,7 +7,7 @@ from load import get_mnist, get_digits
 from utils import get_min, create_covariance_matrix
 
 
-optimizers = ['SD1', 'AD1', 'AM1']
+optimizers = ['SD1', 'AG1', 'AD1', 'AM1', 'AB1']
 datasets = {'MNIST': get_mnist, 'digits': get_digits}
 
 
