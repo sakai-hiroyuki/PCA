@@ -12,8 +12,8 @@ class RSGD(Optimizer):
         super(RSGD, self).__init__()
     
     def update(self, M, xk, g, k) -> np.ndarray:
-        if not hasattr(self, 'state'):
-            self.state = {}
-
+        if len(self.state) == 0:
+            pass
+        
         xk = M.retraction(xk, -self.lr * g)
         return xk

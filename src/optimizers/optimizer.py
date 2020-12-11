@@ -10,7 +10,7 @@ from manifolds import Stiefel
 
 class Optimizer(object, metaclass=ABCMeta):
     def __init__(self):
-        pass
+        self.state = {}
     
     def optimize(self, loss, data, components, n_iter: int=20000, x0: np.ndarray=None):
         N = data.shape[0]

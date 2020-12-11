@@ -22,26 +22,35 @@ class RAdaBound(Optimizer):
         super(RAdaBound, self).__init__()
     
     def update(self, M, xk, g, k) -> np.ndarray:
-        if not hasattr(self, 'state'):
-            self.state = {}
-            self.state['m'] = np.zeros_like(xk)
-            self.state['tau'] = np.zeros_like(xk)
-            self.state['v'] = 0.
-            self.state['vhat'] = 0.
-
-        self.state['m'] = self.betas[0] * self.state['tau'] + (1 - self.betas[0]) * g
-        self.state['v'] = self.betas[1] * self.state['v'] + (1 - self.betas[1]) * np.trace(np.dot(g.T, g))
-        if self.amsbound:
-            self.state['vhat'] = max(self.state['vhat'], self.state['v'])
-        else:
-            self.state['vhat'] = self.state['v']
-
-        lower = self.final_lr * (1 - 1 / ((1 - self.betas[1]) * k + 1))
-        upper = self.final_lr * (1 + 1 / ((1 - self.betas[1]) * k))
-
-        clipped = np.clip(self.lr / (np.sqrt(self.state['vhat']) + self.eps), lower, upper)
+        amsbound = self.amsbound
+        state = self.state
+        if len(state) == 0:
+            # Exponential moving average of gradient values
+            state['exp_avg'] = np.zeros_like(xk)
+            # Exponential moving average of squared norm of gradient values
+            state['exp_avg_sq'] = 0.
+            if amsbound:
+                # Maintains max of all exp. moving avg. of sq. norm of grad. values
+                state['max_exp_avg_sq'] = 0.
         
-        xk = M.retraction(xk, -clipped * self.state['m'])
-        self.state['tau'] = M.projection(xk, self.state['m'])
+        beta1, beta2 = self.betas
+        
+        state['exp_avg'] = beta1 * state['exp_avg'] + (1 - beta1) * g
+        state['exp_avg_sq'] = beta2 * state['exp_avg_sq'] + (1 - beta2) * np.trace(np.dot(g.T, g))
+        if amsbound:
+            state['max_exp_avg_sq'] = max(state['exp_avg_sq'], state['max_exp_avg_sq'])
+            denom = np.sqrt(state['max_exp_avg_sq']) + self.eps
+        else:
+            denom = np.sqrt(state['exp_avg_sq']) + self.eps
+
+        final_lr = self.final_lr
+        lower_bound = final_lr * (1 - 1 / (beta2 * k + 1))
+        upper_bound = final_lr * (1 + 1 / (beta2 * k))
+
+        step_size = self.lr / denom
+        step_size = np.clip(step_size, lower_bound, upper_bound)
+        
+        xk = M.retraction(xk, -step_size * state['exp_avg'])
+        state['exp_avg'] = M.projection(xk, state['exp_avg'])
         
         return xk
