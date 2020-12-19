@@ -1,12 +1,8 @@
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from argparse import ArgumentParser
 
 from utils import create_loss
-
-
-optimizers = ['SD1', 'AG1', 'AD1', 'AM1', 'ADB1', 'AMB1']
 
 
 def plot(dataset_name, optimizers, _min: float):
@@ -30,14 +26,4 @@ def plot(dataset_name, optimizers, _min: float):
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument('--dataset_name', type=str, default='MNIST')
-    parser.add_argument('--components', type=int, default=10)
-
-    args = parser.parse_args()
-    dataset_name = args.dataset_name
-    components = args.components
-
-    _, _, _min = create_loss(dataset_name, components)
-
-    plot(dataset_name, optimizers, _min)
+    pass
