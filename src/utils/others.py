@@ -63,7 +63,7 @@ def _create_covariance_matrix(dataset_name, use_tqdm=True):
             z = np.reshape(data[index], (n, 1))
             C += np.dot(z, z.T)
 
-    np.save(f'./data/{name}/cvm', C)
+    np.save(f'./data/{dataset_name}/cvm', C)
 
 
 def get_initial(n, components):
