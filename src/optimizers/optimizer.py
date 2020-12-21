@@ -1,4 +1,4 @@
-import autograd.numpy as np
+import numpy as np
 
 from autograd import grad
 from time import time
@@ -24,11 +24,10 @@ class Optimizer(object, metaclass=ABCMeta):
         self.logging(loss(xk))
         for k in tqdm(range(1, n_iter + 1)):
             index = np.random.randint(0, N)
-            z = data[index]
-        
-            def loss_i(x):
-                return - np.dot(np.dot(z, x), np.dot(x.T, z))
-            g = M.projection(xk, grad(loss_i)(xk))
+            z = data[index].reshape((n, 1))
+
+            # Riemannian gradient
+            g = M.projection(xk, -2 * np.dot(np.dot(z, z.T), xk))
             
             xk = self.update(M, xk, g, k)
             

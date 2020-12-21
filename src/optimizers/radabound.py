@@ -1,4 +1,4 @@
-import autograd.numpy as np
+import numpy as np
 
 from optimizers import Optimizer
 from manifolds import Stiefel

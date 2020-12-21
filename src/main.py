@@ -9,7 +9,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('--dataset_name', type=str, default='MNIST')
     parser.add_argument('--components', type=int, default=10)
-    parser.add_argument('--n_iter', type=int, default=10000)
+    parser.add_argument('--n_iter', type=int, default=20000)
     parser.add_argument('--lr', type=float, default=5e-3)
 
     args = parser.parse_args()
