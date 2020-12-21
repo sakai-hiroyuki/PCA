@@ -15,6 +15,7 @@ class Optimizer(object, metaclass=ABCMeta):
     def optimize(self, loss, data, components, n_iter: int=20000, x0: np.ndarray=None):
         N = data.shape[0]
         n = data.shape[1]
+        self.data = data
         M = Stiefel(components, n)
         if x0 is None:
             xk = np.linalg.qr(np.random.randn(n, r))[0]
@@ -23,13 +24,7 @@ class Optimizer(object, metaclass=ABCMeta):
         
         self.logging(loss(xk))
         for k in tqdm(range(1, n_iter + 1)):
-            index = np.random.randint(0, N)
-            z = data[index].reshape((n, 1))
-
-            # Riemannian gradient
-            g = M.projection(xk, -2 * np.dot(np.dot(z, z.T), xk))
-            
-            xk = self.update(M, xk, g, k)
+            xk = self.update(M, xk, k)
             
             if k % 100 == 0:
                 self.logging(loss(xk))
@@ -37,7 +32,7 @@ class Optimizer(object, metaclass=ABCMeta):
         self.xk = xk
 
     @abstractmethod
-    def update(self, M, xk, g, k):
+    def update(self, M, xk, k) -> np.ndarray:
         raise NotImplementedError()
 
     def logging(self, v: float):

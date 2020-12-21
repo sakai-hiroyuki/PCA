@@ -20,10 +20,15 @@ class RAdam(Optimizer):
         self.amsgrad = amsgrad
         super(RAdam, self).__init__()
     
-    def update(self, M, xk, g, k) -> np.ndarray:
+    def update(self, M, xk, k) -> np.ndarray:
         amsgrad = self.amsgrad
+
+        data = self.data
+        N = data.shape[0]
+        n = data.shape[1]
+
         state = self.state
-        if len(state) == 0:
+        if len(self.state) == 0:
             # Exponential moving average of gradient values
             state['exp_avg'] = np.zeros_like(xk)
             # Exponential moving average of squared norm of gradient values
@@ -31,6 +36,11 @@ class RAdam(Optimizer):
             if self.amsgrad:
                 # Maintains max of all exp. moving avg. of sq. norm of grad. values
                 state['max_exp_avg_sq'] = 0.
+
+        # Caluculate stochastic gradient
+        index = np.random.randint(0, N)
+        z = data[index].reshape((n, 1))
+        g = M.projection(xk, -2 * np.dot(np.dot(z, z.T), xk))
         
         beta1, beta2 = self.betas
         

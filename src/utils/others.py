@@ -67,4 +67,5 @@ def _create_covariance_matrix(dataset_name, use_tqdm=True):
 
 
 def get_initial(n, components):
-    return np.linalg.qr(np.random.randn(n, components))[0]
+    # return np.linalg.qr(np.random.randn(n, components))[0]
+    return np.linalg.qr(np.ones((n, components)))[0]
