@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-from optimizers import RSGD, RSVRG, RCGVR
+from optimizers import RSGD, RSVRG, RAdam, RAdaBound
 from utils import create_loss, get_initial, save
 from plot import plot
 
@@ -22,9 +22,10 @@ if __name__ == "__main__":
     N, n = data.shape[0], data.shape[1]
 
     optimizer_dict = {
-        'SGD': RSGD(lr=0.5),
-        'SVRG': RSVRG(lr=0.5, update_frequency=N),
-        'CGVR': RCGVR(lr=0.5, update_frequency=N)
+        'SGD': RSGD(lr=0.05),
+        'SVRG': RSVRG(lr=0.05, update_frequency=5*N),
+        'Adam': RAdam(lr=0.05),
+        'AdaBound': RAdaBound(lr=0.05)
     }
 
     x0 = get_initial(n, components)

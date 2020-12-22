@@ -37,17 +37,18 @@ class RSVRG(Optimizer):
         store_full_gradient = state['store_full_gradient']
 
         # Caluculate stochastic gradient
-        index = np.random.randint(0, N)
+        # index = np.random.randint(0, N)
+        index = k % N
         z = data[index].reshape((n, 1))
         g = M.projection(xk, -2 * np.dot(np.dot(z, z.T), xk))
 
         g_back = M.projection(store_xk, -2 * np.dot(np.dot(z, z.T), store_xk))
         
-        xi = g - M.projection(xk, g_back - store_full_gradient)
+        search_dir = -g + M.projection(xk, g_back - store_full_gradient)
 
         state['iter_count'] += 1
         if state['iter_count'] > self.update_frequency:
             state['iter_count'] = 0
         
-        xk = M.retraction(xk, -self.lr * xi)
+        xk = M.retraction(xk, self.lr * search_dir)
         return xk

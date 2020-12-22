@@ -38,7 +38,7 @@ class RAdam(Optimizer):
                 state['max_exp_avg_sq'] = 0.
 
         # Caluculate stochastic gradient
-        index = np.random.randint(0, N)
+        index = k % N
         z = data[index].reshape((n, 1))
         g = M.projection(xk, -2 * np.dot(np.dot(z, z.T), xk))
         
